@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umut Vadisi'nin Kaderi - Coğrafya Oyunu</title>
+    <!-- Google Font Import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Renk Paleti ve Temel Ayarlar --- */
+        :root {
+            --primary-color: #0077b6; /* Daha canlı bir mavi */
+            --secondary-color: #00b4d8; /* Açık mavi tonu */
+            --accent-color: #fb8500;  /* Vurgu için turuncu */
+            --success-color: #2a9d8f; /* Başarı yeşili */
+            --error-color: #e63946;   /* Hata kırmızısı */
+            --light-bg: #f8f9fa;     /* Açık arka plan */
+            --dark-text: #343a40;    /* Koyu metin */
+            --medium-text: #6c757d;  /* Orta ton metin */
+            --border-color: #dee2e6; /* Kenarlık rengi */
+            --white: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif; /* Modern font */
+            line-height: 1.7; /* Daha rahat okunabilirlik */
+            margin: 0;
+            padding: 20px; /* Kenarlardan boşluk */
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        #game-container {
+            background-color: var(--white);
+            border-radius: 12px; /* Daha yuvarlak köşeler */
+            box-shadow: 0 6px 20px var(--shadow-color); /* Daha belirgin gölge */
+            padding: 35px 40px; /* İç boşluklar */
+            width: 90%;
+            max-width: 750px; /* Biraz daha geniş */
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color); /* Hafif kenarlık */
+        }
+
+        /* --- Öğrenci Bilgisi --- */
+        #student-info {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 0.85em; /* Biraz daha büyük */
+            font-weight: 500; /* Biraz daha kalın */
+            color: var(--medium-text); /* Orta ton gri */
+            background-color: rgba(233, 236, 239, 0.7); /* Hafif arka plan */
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        /* --- Ekran Yönetimi --- */
+        .screen { display: none; width: 100%; }
+        .screen.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Genel Başlık Stilleri --- */
+        h1, h2 { color: var(--primary-color); text-align: center; margin-bottom: 25px; }
+        h1 { font-size: 2em; color: var(--dark-text); }
+        h2 { font-size: 1.6em; margin-bottom: 20px; }
+
+        /* --- Ana Menü --- */
+        #main-menu .menu-buttons { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: 30px; }
+        .menu-buttons button {
+            padding: 14px 30px;
+            font-size: 1.15em;
+            font-weight: 700; /* Daha kalın yazı */
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, var(--primary-color), var(--secondary-color)); /* Gradient arka plan */
+            color: var(--white);
+            transition: all 0.3s ease;
+            width: 250px;
+            position: relative;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            text-align: center; /* Metni ortala */
+        }
+        .menu-buttons button:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02); /* Hafif kalkma ve büyüme */
+            box-shadow: 0 6px 12px rgba(0, 119, 182, 0.3); /* Mavi tonlu gölge */
+        }
+        .menu-buttons button:disabled {
+            background: var(--border-color);
+            color: var(--medium-text);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* --- Kilit İkonu Yönetimi (DÜZELTİLDİ) --- */
+        .menu-buttons button .lock-icon {
+            display: none; /* Varsayılan olarak gizli */
+            font-size: 1em;
+            margin-left: 10px;
+            color: var(--medium-text); /* Kilitli buton ikonu rengi */
+        }
+        /* Sadece .locked sınıfına sahip (ve disabled olan) butonlarda ikonu göster */
+        .menu-buttons button.locked .lock-icon {
+            display: inline;
+        }
+        /* Açık (unlocked) butonlarda ikonu kesin gizle */
+         .menu-buttons button:not(.locked) .lock-icon {
+            display: none;
+         }
+
+
+        /* --- Nasıl Oynanır Ekranı --- */
+        #how-to-play h2 { color: var(--accent-color); }
+        #how-to-play p {
+            margin-bottom: 15px;
+            background-color: var(--light-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid var(--accent-color);
+        }
+        #how-to-play button {
+            display: block; margin: 30px auto 0 auto; padding: 12px 28px;
+            background-color: var(--error-color); color: var(--white); font-weight: 700;
+            border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s ease; font-size: 1em;
+        }
+        #how-to-play button:hover { background-color: #c91828; }
+
+        /* --- Oyun Ekranı --- */
+        #game-screen h2 { color: var(--success-color); font-size: 1.7em; }
+        #story-text {
+            min-height: 140px; margin-bottom: 30px;
+            background-color: #e9ecef; /* Hafif gri arka plan */
+            border-left: 6px solid var(--secondary-color);
+            padding: 20px; border-radius: 8px;
+            font-size: 1.1em; color: var(--dark-text);
+            overflow-wrap: break-word;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        #choices { display: flex; flex-direction: column; gap: 15px; }
+        #choices button {
+            padding: 15px 20px; font-size: 1.05em; font-weight: 500;
+            cursor: pointer; border: 2px solid var(--border-color);
+            border-radius: 8px; background-color: var(--white); color: var(--dark-text);
+            transition: all 0.3s ease; text-align: left; line-height: 1.5;
+        }
+        #choices button:hover:not(:disabled) {
+            background-color: #e0f7fa; /* Açık mavi hover */
+            border-color: var(--secondary-color);
+            transform: translateX(5px);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+        #choices button:disabled {
+            opacity: 0.7; cursor: default; background-color: var(--light-bg);
+            transform: none; box-shadow: none;
+        }
+        #feedback {
+            margin-top: 25px; font-weight: 700; text-align: center;
+            padding: 15px; border-radius: 8px; min-height: 25px;
+            transition: all 0.4s ease; font-size: 1.05em;
+        }
+        #feedback.correct { background-color: #d1fae5; color: #047857; border: 1px solid #6ee7b7; }
+        #feedback.incorrect { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+        /* --- Bitiş Ekranları --- */
+        .end-screen h2 { font-size: 1.8em; margin-bottom: 15px; }
+        .end-screen p { text-align: center; margin-bottom: 30px; font-size: 1.2em; padding: 0 20px; color: var(--medium-text); }
+        .end-screen button {
+             display: inline-block; /* Yan yana durabilmeleri için */
+             margin: 10px; /* Butonlar arası boşluk */
+             padding: 12px 25px; background-color: var(--primary-color);
+             color: var(--white); font-weight: 700; border: none; border-radius: 8px;
+             cursor: pointer; transition: all 0.3s ease; font-size: 1em;
+        }
+        .end-screen button:hover { background-color: #005f8d; transform: translateY(-2px); }
+        #level-complete h2 { color: var(--success-color); }
+        #game-over h2 { color: var(--error-color); }
+         /* Özel Buton Renkleri */
+        #next-level-btn { background-color: var(--success-color); }
+        #next-level-btn:hover { background-color: #218a7e; }
+        #restart-level-btn { background-color: var(--accent-color); }
+        #restart-level-btn:hover { background-color: #d97000; }
+         .end-screen .button-container { /* Butonları ortalamak için */
+             text-align: center;
+             margin-top: 20px;
+         }
+
+
+        /* --- Yazı Efekti İmleci --- */
+        .typewriter-cursor::after {
+            content: '|';
+            animation: blink 0.7s step-end infinite;
+            margin-left: 4px; font-weight: bold; color: var(--medium-text);
+            position: relative; top: -1px; font-size: 1.1em;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* --- Ana Menüye Dön Butonu (Oyun İçi) --- */
+        button#back-to-menu-from-game {
+             margin: 25px auto 0 auto; background-color: var(--medium-text);
+             color: var(--white); border: none; padding: 8px 18px;
+             border-radius: 6px; cursor: pointer; display: block;
+             font-size: 0.9em; transition: background-color 0.3s ease;
+             font-weight: 700;
+        }
+        button#back-to-menu-from-game:hover{ background-color: #5a6268; }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="student-info">Emir Pamukcu 607 9/B</div>
+
+        <!-- 1. Ana Menü Ekranı -->
+        <div id="main-menu" class="screen active">
+            <h1>Umut Vadisi'nin Kaderi</h1>
+            <div class="menu-buttons">
+                <!-- Kilit ikonları HTML'de kalıyor, JS sınıf ekleyip/kaldıracak -->
+                <button id="level-1-btn" class="unlocked">Seviye 1 <span class="lock-icon">🔒</span></button>
+                <button id="level-2-btn" class="locked" disabled>Seviye 2 <span class="lock-icon">🔒</span></button>
+                <button id="level-3-btn" class="locked" disabled>Seviye 3 <span class="lock-icon">🔒</span></button>
+                <button id="how-to-play-btn">Nasıl Oynanır?</button>
+            </div>
+        </div>
+
+        <!-- 2. Nasıl Oynanır Ekranı -->
+        <div id="how-to-play" class="screen">
+            <h2>Nasıl Oynanır?</h2>
+            <p>Bu oyunda, Umut Vadisi'nin kalkınmasından sorumlu bir yönetici/kâşifsin.</p>
+            <p>Karşına çıkan durumlarda, sana sunulan seçeneklerden birini seçerek hikayeyi ilerlet.</p>
+            <p>Seçimlerin, vadinin doğal ve beşeri faktörlerini ne kadar iyi anladığını gösterecek.</p>
+            <p>Doğru kararlar vadiyi geliştirirken, yanlış kararlar olumsuz sonuçlara veya oyunun bitmesine yol açabilir.</p>
+            <p>Amacın, her seviyeyi başarıyla tamamlayarak vadinin sürdürülebilir kalkınmasını sağlamaktır. İyi şanslar!</p>
+            <button id="back-to-menu-from-htp">Anladım, Başlayalım!</button>
+        </div>
+
+        <!-- 3. Oyun Ekranı -->
+        <div id="game-screen" class="screen">
+             <h2 id="level-title">Seviye Başlığı</h2>
+            <div id="story-text">Hikaye metni yükleniyor...</div>
+            <div id="choices">
+                <!-- Seçenek butonları buraya eklenecek -->
+            </div>
+            <div id="feedback"></div>
+             <button id="back-to-menu-from-game">Ana Menüye Dön</button>
+        </div>
+
+        <!-- 4. Seviye Tamamlandı Ekranı -->
+         <div id="level-complete" class="screen end-screen">
+             <h2>Harika İş!</h2>
+             <p id="level-complete-msg">Seviyeyi başarıyla tamamladın!</p>
+             <div class="button-container">
+                <button id="next-level-btn" style="display: none;">Sonraki Seviye</button>
+                <button id="back-to-menu-from-lc">Ana Menüye Dön</button>
+             </div>
+         </div>
+
+         <!-- 5. Oyun Bitti Ekranı -->
+         <div id="game-over" class="screen end-screen">
+              <h2>Dikkatli Olmalıydın!</h2>
+              <p id="game-over-msg">Maalesef bu karar vadi için iyi olmadı.</p>
+               <div class="button-container">
+                  <button id="restart-level-btn">Tekrar Dene</button>
+                  <button id="back-to-menu-from-go">Ana Menüye Dön</button>
+               </div>
+         </div>
+
+    </div>
+
+    <script>
+        // --- Element Referansları ---
+        const screens = document.querySelectorAll('.screen');
+        const mainMenuScreen = document.getElementById('main-menu');
+        const howToPlayScreen = document.getElementById('how-to-play');
+        const gameScreen = document.getElementById('game-screen');
+        const levelCompleteScreen = document.getElementById('level-complete');
+        const gameOverScreen = document.getElementById('game-over');
+
+        const level1Btn = document.getElementById('level-1-btn');
+        const level2Btn = document.getElementById('level-2-btn');
+        const level3Btn = document.getElementById('level-3-btn');
+        const howToPlayBtn = document.getElementById('how-to-play-btn');
+        const backToMenuHtpBtn = document.getElementById('back-to-menu-from-htp');
+        const backToMenuGameBtn = document.getElementById('back-to-menu-from-game');
+        const backToMenuLcBtn = document.getElementById('back-to-menu-from-lc');
+        const backToGoBtn = document.getElementById('back-to-menu-from-go');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const restartLevelBtn = document.getElementById('restart-level-btn');
+
+
+        const levelTitle = document.getElementById('level-title');
+        const storyTextElement = document.getElementById('story-text');
+        const choicesElement = document.getElementById('choices');
+        const feedbackElement = document.getElementById('feedback');
+        const levelCompleteMsg = document.getElementById('level-complete-msg');
+        const gameOverMsg = document.getElementById('game-over-msg');
+
+        // --- Oyun Verisi (Senaryolar aynı, önceki mesajdaki gibi) ---
+        const gameData = {
+            1: { // Seviye 1: Doğal Faktörlerin Gücü
+                title: "Seviye 1: Doğal Faktörlerin Gücü",
+                stages: {
+                    0: { // Başlangıç
+                        story: "Kâşif, Umut Vadisi'nin potansiyelini ortaya çıkarma görevi sende! Vadinin DOĞAL FAKTÖRLERİ şunlar: Ana yollara biraz uzak bir COĞRAFİ KONUM, tarıma uygun ılıman İKLİM, verimli ovalar ve engebeli YER ŞEKİLLERİ, bol SU KAYNAKLARI, verimli TOPRAK, sık BİTKİ ÖRTÜSÜ (orman) ve potansiyel MADEN yatakları. Kalkınmayı başlatmak için hangi EKONOMİK FAALİYETE öncelik vermelisin?",
+                        choices: [
+                            { text: "A) Tarım: İKLİM, SU ve TOPRAK avantajlarını kullanarak başlayalım.", nextStage: 1, isCorrect: true },
+                            { text: "B) Madencilik ve Sanayi: Tepelerdeki MADEN potansiyelini araştırıp sanayi kuralım.", nextStage: 'gameOver_MadenRisk', isCorrect: false },
+                            { text: "C) Doğa Turizmi: Ormanlık BİTKİ ÖRTÜSÜ ve YER ŞEKİLLERİ'ni kullanarak doğa turizmini geliştirelim.", nextStage: 'gameOver_TurizmErken', isCorrect: false } // Kış turizmi yerine daha genele odaklanıldı.
+                        ],
+                        feedbackCorrect: "Mükemmel başlangıç! Vadinin en güçlü DOĞAL FAKTÖRLERİ olan İKLİM, SU ve TOPRAK ile tarıma odaklanmak akıllıca.",
+                        feedbackIncorrectBase: "Bu seçenek şu anki DOĞAL FAKTÖRLER açısından riskli. Madenlerin durumu belirsiz ve turizm için önce altyapı gerekebilir."
+                    },
+                    1: { // Tarım başarılı, Ulaşım sorunu
+                        story: "Tarım harika gidiyor! Ancak ürünleri satmak zor. Vadinin uzak COĞRAFİ KONUMU ve engebeli YER ŞEKİLLERİ nedeniyle ULAŞIM (beşeri faktör) yetersiz. Ürünler pazara ulaşamıyor. Bu sorunu nasıl çözersin?",
+                        choices: [
+                            { text: "A) Modern Karayolu: YER ŞEKİLLERİ'nin zorluğuna rağmen vadiyi ana yola bağlayacak bir yol inşa edelim.", nextStage: 2, isCorrect: true },
+                            { text: "B) Gıda İşleme Tesisi: Ürünleri işleyerek (TEKNOLOJİ) değerini artıralım ve taşıma sorununu hafifletelim.", nextStage: 3, isCorrect: true },
+                            { text: "C) Havaalanı: Ürünleri hızla taşımak için küçük bir kargo havaalanı yapalım.", nextStage: 'gameOver_HavaalaniMaliyet', isCorrect: false } // Nehir yerine daha maliyetli bir seçenek.
+                        ],
+                         feedbackCorrect: "İyi düşündün! Ya DOĞAL engelleri (YER ŞEKİLLERİ, KONUM) BEŞERİ bir çözümle (ULAŞIM) aşmaya çalışıyorsun ya da TEKNOLOJİ ile uyum sağlıyorsun.",
+                         feedbackIncorrectBase: "Havaalanı bu aşamada çok yüksek maliyetli (SERMAYE) ve gereksiz olabilir. Daha temel çözümler lazım."
+                    },
+                    2: { // Karayolu seçildi -> Başarı
+                        story: "Karayolu inşaatı tamamlandı! Zorlu YER ŞEKİLLERİ aşıldı ve vadi artık ana ULAŞIM ağlarına bağlandı. Tarım ürünleri kolayca pazarlanıyor, vadinin geliri arttı. COĞRAFİ KONUM dezavantajı aşıldı!",
+                        isLevelComplete: true,
+                         levelCompleteText: "Seviye 1 tamamlandı! DOĞAL FAKTÖRLERİN (Yer Şekilleri, Konum) ULAŞIM üzerindeki etkisini ve BEŞERİ çözümlerle aşılabileceğini gördün."
+                    },
+                     3: { // Gıda İşleme Tesisi seçildi -> Başarı
+                        story: "Gıda işleme tesisi kuruldu! BEŞERİ FAKTÖRLER (TEKNOLOJİ, SERMAYE) sayesinde tarım ürünlerinin değeri arttı ve raf ömrü uzadı. COĞRAFİ KONUM'dan kaynaklanan ULAŞIM zorlukları azaldı. Vadi zenginleşiyor!",
+                        isLevelComplete: true,
+                        levelCompleteText: "Seviye 1 tamamlandı! DOĞAL kaynakları BEŞERİ FAKTÖRLERLE (Teknoloji, Sermaye) daha verimli kullanmanın önemini kavradın."
+                    },
+                    'gameOver_MadenRisk': {
+                         story: "Aceleci karar! Potansiyel MADEN yataklarının durumu belirsizken ve YER ŞEKİLLERİ nedeniyle ulaşım zorken sanayiye yatırım yapmak SERMAYE israfına yol açtı. Proje başarısız.",
+                         isGameOver: true,
+                         gameOverText: "DOĞAL FAKTÖRLERDEN MADEN potansiyelini ve YER ŞEKİLLERİ'nin zorluğunu yeterince dikkate almadın."
+                    },
+                     'gameOver_TurizmErken': {
+                         story: "Erken bir adım! Vadinin BİTKİ ÖRTÜSÜ ve YER ŞEKİLLERİ turizm için potansiyel sunsa da, yeterli ULAŞIM ve konaklama (BEŞERİ FAKTÖRLER) olmadan turist çekmek mümkün olmadı. Yatırım boşa gitti.",
+                         isGameOver: true,
+                         gameOverText: "DOĞAL FAKTÖRLERİN turizm potansiyelini kullanmak için gerekli BEŞERİ FAKTÖRLERİ (Ulaşım, Altyapı) göz ardı ettin."
+                    },
+                    'gameOver_HavaalaniMaliyet': {
+                         story: "Aşırı maliyetli! Bu aşamada bir havaalanı inşa etmek için gereken SERMAYE çok yüksekti ve vadinin mevcut üretimi bu yatırımı karşılamıyordu. Kaynaklar tükendi.",
+                         isGameOver: true,
+                         gameOverText: "BEŞERİ FAKTÖRLERDEN SERMAYE'yi ve mevcut ekonomik durumu doğru analiz edemedin. Çözümün ölçeği yanlıştı."
+                    }
+                }
+            },
+             2: { // Seviye 2: Beşeri Faktörler
+                 title: "Seviye 2: İnsanın Etkisi",
+                 stages: {
+                    0: { // Tarım gelişti, beşeri sorunlar başladı
+                         story: "Seviye 1 harika! Tarım gelişti, ama şimdi BEŞERİ sorunlar var: Hızla artan NÜFUS için konut ve hizmet yetersiz. Yeni iş kolları için NİTELİKLİ İŞ GÜCÜ lazım. Daha büyük yatırımlar içinse SERMAYE gerekiyor. Hangi BEŞERİ FAKTÖRE öncelik vermelisin?",
+                         choices: [
+                             { text: "A) Eğitim ve Mesleki Kurslar: Halkın becerilerini artırıp NİTELİKLİ İŞ GÜCÜ oluşturalım.", nextStage: 1, isCorrect: true },
+                             { text: "B) Devlet Destekli Konut Projesi: Artan NÜFUS'un barınma sorununu DEVLET POLİTİKALARI ile çözelim.", nextStage: 'gameOver_SermayeYetmez2', isCorrect: false },
+                             { text: "C) Dışarıdan Göç Teşviki: Farklı alanlarda uzmanlaşmış kişileri vadiye çekelim.", nextStage: 'gameOver_AltyapiYetersiz', isCorrect: false }
+                         ],
+                         feedbackCorrect: "Çok doğru! Uzun vadeli kalkınma için NİTELİKLİ İŞ GÜCÜ yetiştirmek en sağlam temeldir.",
+                         feedbackIncorrectBase: "Konut ve dışarıdan insan getirmek de çözüm olabilir ama önce içerideki potansiyeli geliştirmek daha sürdürülebilir olabilir."
+                     },
+                     1: { // Eğitim başarılı, sanayi potansiyeli
+                         story: "Eğitim yatırımları meyvesini verdi! Vadide artık daha NİTELİKLİ bir İŞ GÜCÜ var. Şimdi, tarıma ek olarak yeni bir ekonomik faaliyet daha başlatmak için uygun bir zaman. Ne önerirsin?",
+                        choices: [
+                             { text: "A) Hafif Sanayi: Tarım ürünlerini işleyen veya basit tüketim malları üreten küçük fabrikalar (TEKNOLOJİ kullanımı).", nextStage: 'level2_complete', isCorrect: true },
+                             { text: "B) Teknopark Kurulumu: Yüksek TEKNOLOJİ ve yazılım geliştirmeye odaklanalım.", nextStage: 'gameOver_TeknoErken', isCorrect: false },
+                             { text: "C) Büyükbaş Hayvancılık: Geniş çayırları kullanarak modern hayvancılık yapalım.", nextStage: 'gameOver_PazarSorunu', isCorrect: false } // Doğal faktöre dönük ama beşeri sorun yaratabilir
+                        ],
+                         feedbackCorrect: "Mantıklı! Mevcut tarımsal üretime ve gelişen İŞ GÜCÜNE dayalı hafif sanayi, iyi bir sonraki adım.",
+                         feedbackIncorrectBase: "Teknopark için henüz yeterli SERMAYE ve uzmanlık birikimi olmayabilir. Hayvancılık ise yeni pazar ve ULAŞIM sorunları yaratabilir."
+                     },
+                     'gameOver_SermayeYetmez2': {
+                         story: "DEVLET POLİTİKALARI ile konut yapmak iyi niyetliydi ama vadinin henüz yeterli SERMAYE birikimi yoktu. Proje yarım kaldı, kaynaklar boşa harcandı.",
+                         isGameOver: true,
+                         gameOverText: "BEŞERİ FAKTÖRLERDEN SERMAYE'nin yeterliliğini ve DEVLET POLİTİKALARI'nın zamanlamasını doğru ayarlayamadın."
+                     },
+                     'gameOver_AltyapiYetersiz': {
+                        story: "Dışarıdan NÜFUS çekmek vadinin mevcut altyapısını (konut, sağlık, ULAŞIM) daha da zorladı. Gelenler mutsuz oldu, sosyal sorunlar arttı.",
+                        isGameOver: true,
+                        gameOverText: "NÜFUS artışını planlarken mevcut BEŞERİ altyapının (ve SERMAYE'nin) yeterliliğini göz ardı ettin."
+                     },
+                     'gameOver_TeknoErken': {
+                        story: "Vizyoner bir fikir ama Teknopark için gereken yüksek TEKNOLOJİ bilgisi, SERMAYE ve uluslararası bağlantılar vadide henüz mevcut değildi. Yatırım atıl kaldı.",
+                        isGameOver: true,
+                        gameOverText: "BEŞERİ FAKTÖRLERDEN TEKNOLOJİ seviyesi ve SERMAYE gereksinimini yanlış değerlendirdin."
+                      },
+                      'gameOver_PazarSorunu': {
+                        story: "Hayvancılık gelişti ama üretilen et ve süt ürünlerini satacak yeterli Pazar (ULAŞIM ve TİCARET bağlantıları - beşeri faktörler) bulunamadı. Ürünler elde kaldı.",
+                        isGameOver: true,
+                        gameOverText: "Yeni bir DOĞAL kaynağa (çayırlar) dayalı üretim yaparken, bunun gerektirdiği BEŞERİ faktörleri (Pazar, Ulaşım) eksik planladın."
+                      },
+                     'level2_complete': {
+                         story: "Harika bir hamle! Hafif sanayi tesisleri, hem yerel tarım ürünlerini değerlendirdi hem de NİTELİKLİ İŞ GÜCÜNE yeni istihdam sağladı. Vadi artık daha dengeli bir ekonomiye sahip.",
+                         isLevelComplete: true,
+                         levelCompleteText: "Seviye 2 tamamlandı! BEŞERİ FAKTÖRLERİN (Nüfus, İş gücü, Sermaye, Teknoloji) birbirini nasıl etkilediğini ve yönetilmesi gerektiğini öğrendin."
+                     }
+                 }
+             },
+              3: { // Seviye 3: Doğal ve Beşeri Dengesi
+                 title: "Seviye 3: Kalkınma ve Çevre Dengesi",
+                  stages: {
+                     0: {
+                         story: "Vadi gelişiyor ama alarm zilleri çalıyor! Yoğun tarım TOPRAĞI yoruyor, artan NÜFUS ve sanayi SU KAYNAKLARINI kirletiyor, yeni yollar BİTKİ ÖRTÜSÜNÜ (ORMANLARI) tehdit ediyor. DEVLET POLİTİKALARI ile sürdürülebilir bir denge kurmalısın. İlk adım ne olmalı?",
+                        choices: [
+                            { text: "A) Katı Çevre Yasaları: Kirliliği ve orman kesimini hemen yasaklayan DEVLET POLİTİKALARI uygulayalım.", nextStage: 'gameOver_EkonomiDurur', isCorrect: false },
+                            { text: "B) TEKNOLOJİ ve Planlama: Arıtma tesisleri, modern sulama, planlı ormancılık gibi BEŞERİ çözümlere yönelelim.", nextStage: 'level3_complete', isCorrect: true },
+                            { text: "C) Turizmi Geliştirme: DOĞAL FAKTÖRLERİ koruyarak ekoturizme odaklanalım (DEVLET TEŞVİKLERİ ile).", nextStage: 'gameOver_YetersizCozum', isCorrect: false }
+                        ],
+                        feedbackCorrect: "TEKNOLOJİ ve planlama gibi BEŞERİ FAKTÖRLER, kalkınma ile DOĞAL FAKTÖRLERİN korunması arasında denge kurmanın anahtarıdır.",
+                        feedbackIncorrectBase: "Dengeyi kurmak önemli, ancak seçtiğin yöntem tek başına yeterli olmayabilir veya ekonomiyi olumsuz etkileyebilir..."
+                     },
+                      'gameOver_EkonomiDurur': {
+                         story: "Yanlış Karar! Ani ve katı DEVLET POLİTİKALARI (yasaklar) ekonomik faaliyetleri durma noktasına getirdi. İşsizlik arttı, halk mutsuz. Çevreyi korurken BEŞERİ FAKTÖRLERİ (ekonomi, nüfus) de düşünmeliydin.",
+                         isGameOver: true,
+                         gameOverText: "DEVLET POLİTİKALARI'nı dengeli kullanamadın, BEŞERİ faktörler zarar gördü."
+                     },
+                     'gameOver_YetersizCozum': {
+                         story: "Yanlış Karar! Ekoturizm iyi bir fikir olsa da tek başına mevcut kirlilik (SU KAYNAKLARI) ve kaynak tüketimi (TOPRAK, BİTKİ ÖRTÜSÜ) sorunlarını çözmeye yetmedi. Sorunlar büyümeye devam etti.",
+                         isGameOver: true,
+                         gameOverText: "Sorunun köküne inen, hem DOĞAL hem BEŞERİ faktörleri gözeten daha kapsamlı bir çözüm gerekiyordu."
+                     },
+                     'level3_complete': {
+                         story: "Mükemmel! Akıllı TEKNOLOJİ yatırımları (arıtma, verimli sulama) ve dikkatli PLANLAMA (DEVLET POLİTİKALARI ile desteklenen planlı ormancılık, sanayi bölgeleri) sayesinde hem DOĞAL FAKTÖRLER (TOPRAK, SU, BİTKİ ÖRTÜSÜ) korundu hem de BEŞERİ FAKTÖRLER (ekonomik gelişme, NÜFUS refahı) sürdürülebilir hale geldi. Umut Vadisi artık bir başarı öyküsü!",
+                         isLevelComplete: true,
+                         levelCompleteText: "Tebrikler! Tüm seviyeleri tamamladın! DOĞAL ve BEŞERİ FAKTÖRLERİ dengeleyerek kalkınmayı başardın!"
+                     }
+                 }
+             }
+        }; // gameData bitti
+
+        // --- Oyun Durumu ---
+        let currentLevel = 0;
+        let currentStageId = 0;
+        let unlockedLevels = [1]; // Başlangıçta sadece seviye 1 açık
+        let typewriterInterval = null;
+        const TYPEWRITER_SPEED = 25;
+
+        // --- Fonksiyonlar ---
+
+        function showScreen(screenId) {
+            screens.forEach(screen => screen.classList.remove('active'));
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+                if (screenId === 'main-menu') { updateLevelButtons(); } // Ekran gösterildiğinde butonları güncelle
+            } else {
+                console.error("Hata: Ekran bulunamadı -", screenId);
+                showScreen('main-menu');
+            }
+        }
+
+        function typeWriter(element, text, speed, callback) {
+            let i = 0;
+            element.innerHTML = "";
+            element.classList.add('typewriter-cursor');
+            if (typewriterInterval) { clearInterval(typewriterInterval); typewriterInterval = null; }
+            disableChoices();
+
+            typewriterInterval = setInterval(() => {
+                if (element && i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typewriterInterval);
+                    typewriterInterval = null;
+                    if(element) element.classList.remove('typewriter-cursor');
+                     const stage = gameData[currentLevel]?.stages[currentStageId];
+                     if (callback && stage && ( (stage.choices && stage.choices.length > 0) || stage.isLevelComplete || stage.isGameOver) ) {
+                        // Yazı bittikten SONRA callback'i çağır (seçenek varsa veya oyun bittiyse)
+                        callback();
+                     } else {
+                         // Seçenek yoksa ve oyun/seviye bitmediyse butonları etkinleştirme (veya başka bir işlem)
+                     }
+                }
+            }, speed);
+        }
+
+        function disableChoices() {
+            const buttons = choicesElement.querySelectorAll('button');
+            buttons.forEach(button => button.disabled = true);
+        }
+
+        function enableChoices() {
+            const buttons = choicesElement.querySelectorAll('button');
+            // Sadece yazı efekti bittiyse ve geri bildirim yoksa aktif et
+            if (!feedbackElement.textContent.trim() && !typewriterInterval) {
+                  buttons.forEach(button => button.disabled = false);
+            }
+        }
+
+         function saveProgress() {
+             try {
+                localStorage.setItem('unlockedLevels', JSON.stringify(unlockedLevels));
+             } catch (e) { console.warn("LocalStorage kullanılamıyor:", e); }
+         }
+
+         // SEVİYE BUTON GÜNCELLEME FONKSİYONU (DÜZELTİLDİ)
+         function updateLevelButtons() {
+             const buttons = [level1Btn, level2Btn, level3Btn];
+             buttons.forEach((btn, index) => {
+                 const levelNum = index + 1;
+                 const isUnlocked = unlockedLevels.includes(levelNum);
+
+                 btn.disabled = !isUnlocked; // Butonu kilitle/aç
+
+                 // Sınıfı güncelle (CSS ikonu buna göre yönetecek)
+                 if (isUnlocked) {
+                     btn.classList.remove('locked');
+                     btn.classList.add('unlocked');
+                 } else {
+                     btn.classList.add('locked');
+                     btn.classList.remove('unlocked');
+                 }
+             });
+         }
+
+
+        function startGame(level) {
+            if (!unlockedLevels.includes(level) || !gameData[level]) {
+                console.warn(`Uyarı: Seviye ${level} kilitli veya mevcut değil.`);
+                return;
+            }
+            currentLevel = level;
+            currentStageId = 0;
+            levelTitle.textContent = gameData[currentLevel].title;
+            feedbackElement.textContent = "";
+            feedbackElement.className = 'feedback';
+            displayStage(currentStageId);
+            showScreen('game-screen');
+        }
+
+        function displayStage(stageId) {
+             const levelData = gameData[currentLevel];
+             if (!levelData) { console.error(`Hata: Seviye ${currentLevel} verisi!`); showScreen('main-menu'); return; }
+             const stage = levelData.stages[stageId];
+             if (!stage) { console.error(`Hata: Seviye ${currentLevel}, Sahne ${stageId}!`); showScreen('main-menu'); return; }
+
+             choicesElement.innerHTML = '';
+             feedbackElement.textContent = "";
+             feedbackElement.className = 'feedback';
+
+             typeWriter(storyTextElement, stage.story, TYPEWRITER_SPEED, () => {
+                 // Yazı bittikten SONRA yapılacaklar:
+                 if (stage.choices && stage.choices.length > 0) {
+                     renderChoices(stage.choices); // Seçenekleri oluştur
+                 } else if (stage.isLevelComplete) {
+                      handleLevelComplete(stage); // Seviye bitişini işle
+                 } else if (stage.isGameOver) {
+                      handleGameOver(stage); // Oyun sonunu işle
+                 }
+             });
+        }
+
+        function renderChoices(choices) {
+            choicesElement.innerHTML = '';
+            choices.forEach((choice) => {
+                const button = document.createElement('button');
+                button.innerHTML = choice.text; // Vurgular için innerHTML
+                button.onclick = () => handleChoice(choice);
+                choicesElement.appendChild(button);
+            });
+            // Butonlar render edilince aktif edilebilir (eğer typewriter bittiyse)
+             if (!typewriterInterval) enableChoices();
+        }
+
+        function handleChoice(choice) {
+             disableChoices();
+             const stage = gameData[currentLevel].stages[currentStageId];
+             let nextStageId = choice.nextStage;
+
+             feedbackElement.className = choice.isCorrect ? 'feedback correct' : 'feedback incorrect';
+             feedbackElement.textContent = choice.isCorrect ? (stage.feedbackCorrect || "Doğru!") : (stage.feedbackIncorrectBase || "Pek iyi olmadı...");
+
+             setTimeout(() => {
+                 const nextStageData = gameData[currentLevel].stages[nextStageId];
+                 if (nextStageData) {
+                     currentStageId = nextStageId;
+                     displayStage(currentStageId); // Bir sonraki sahneyi göster
+                 } else {
+                     console.error(`Hata: Sonraki aşama (${nextStageId}) bulunamadı!`);
+                     showScreen('main-menu');
+                 }
+             }, 2000); // Geri bildirimi okumak için süre
+        }
+
+        function handleLevelComplete(stage) {
+             levelCompleteMsg.innerHTML = stage.levelCompleteText || `Seviye ${currentLevel} tamamlandı!`;
+             const nextLevel = currentLevel + 1;
+             if (gameData[nextLevel] && !unlockedLevels.includes(nextLevel)) {
+                 unlockedLevels.push(nextLevel);
+                 saveProgress();
+                 nextLevelBtn.style.display = 'inline-block';
+                 nextLevelBtn.onclick = () => startGame(nextLevel);
+             } else {
+                  nextLevelBtn.style.display = 'none';
+             }
+              // Seviye tamamlandı ekranını göster (displayStage bittikten sonra)
+             showScreen('level-complete');
+         }
+
+         function handleGameOver(stage) {
+             gameOverMsg.innerHTML = stage.gameOverText || "Oyun bitti.";
+             restartLevelBtn.onclick = () => startGame(currentLevel);
+             // Oyun bitti ekranını göster (displayStage bittikten sonra)
+              showScreen('game-over');
+         }
+
+
+        // --- Olay Dinleyicileri ---
+        level1Btn.onclick = () => startGame(1);
+        level2Btn.onclick = () => startGame(2);
+        level3Btn.onclick = () => startGame(3);
+        howToPlayBtn.onclick = () => showScreen('how-to-play');
+        backToMenuHtpBtn.onclick = () => showScreen('main-menu');
+        backToMenuGameBtn.onclick = () => showScreen('main-menu');
+        backToMenuLcBtn.onclick = () => showScreen('main-menu');
+        backToGoBtn.onclick = () => showScreen('main-menu');
+
+
+        // --- Oyun Başlangıcı ---
+        try {
+            const savedLevels = localStorage.getItem('unlockedLevels');
+            unlockedLevels = savedLevels ? JSON.parse(savedLevels) : [1];
+            if (!Array.isArray(unlockedLevels) || !unlockedLevels.includes(1)) {
+                unlockedLevels = [1]; // Hatalı veri varsa sıfırla
+            }
+        } catch (e) {
+            console.warn("LocalStorage okunamadı:", e);
+            unlockedLevels = [1];
+        }
+        // Ana menüyü göster ve butonları ilk kez doğru ayarla
+        showScreen('main-menu');
+
+    </script>
+
+</body>
+</html>
